@@ -130,6 +130,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# Payloads
+.payloads
+.Payloads
+Payloads/
+payloads/
+
 # Spyder project settings
 .spyderproject
 .spyproject
