@@ -21,7 +21,7 @@ class StudentModelAdmin(BaseUserAdmin):
   list_filter = ('is_admin','is_mentor',)
   fieldsets = (
       ('User Credentials', {'fields': ('email', 'password')}),
-      ('Personal info', {'fields': ('first_name','middle_name', 'last_name','mobile_number','section','year',)}),
+      ('Personal info', {'fields': ('first_name','middle_name', 'last_name','mobile_number','section','year','semester',)}),
       ('Permissions', {'fields': ('is_admin','is_active', 'is_mentor',)}),
   )
   # add_fieldsets is not a standard ModelAdmin attribute. StudentModelAdmin
