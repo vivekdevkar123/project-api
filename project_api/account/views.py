@@ -6,7 +6,10 @@ from django.contrib.auth import authenticate
 from account.renderers import UserRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-
+from django.utils.timezone import make_aware
+from datetime import datetime, timedelta
+from django.utils import timezone
+from account.models import Student
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -19,12 +22,48 @@ def get_tokens_for_user(user):
 class UserRegistrationView(APIView):
   renderer_classes = [UserRenderer]
   def post(self, request, format=None):
-    serializer = UserRegistrationSerializer(data=request.data)
+    serializer = UserRegistrationSerializer(data=request.data, context={'request': request})
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
     token = get_tokens_for_user(user)
     print(token)
     return Response({'token':token, 'msg':'Registration Successful'}, status=status.HTTP_201_CREATED)
+  
+
+class VerifyOtpView(APIView):
+    renderer_classes = [UserRenderer]
+    def post(self, request):
+        otp = request.data.get('otp')
+        email = request.data.get('email')
+        
+        stored_otp = request.session.get('otp')
+        otp_expiration = request.session.get('otp_expiration')
+        otp_email = request.session.get('otp_email')
+        
+        if not all([stored_otp, otp_expiration, otp_email]):
+            return Response({'error': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Convert expiration time to timezone-aware datetime
+        otp_expiration_time = make_aware(datetime.strptime(otp_expiration, '%Y-%m-%d %H:%M:%S'))
+        
+        if email != otp_email:
+            return Response({'error': 'Email mismatch'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if timezone.now() - timedelta(minutes=10) > otp_expiration_time:
+            return Response({'error': 'OTP expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if stored_otp == otp:
+            try:
+                user = Student.objects.get(email=email)
+                user.is_active = True  # Activate the user account
+                user.save()
+                request.session.flush()  # Clear the session after verification
+                return Response({'msg': 'OTP verified successfully, account activated'}, status=status.HTTP_200_OK)
+            except Student.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserLoginView(APIView):
   renderer_classes = [UserRenderer]

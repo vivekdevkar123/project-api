@@ -4,30 +4,49 @@ from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeErr
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from account.utils import Util
+import random
+from django.conf import settings
+from django.utils import timezone
 
+    
 class UserRegistrationSerializer(serializers.ModelSerializer):
-
-    # We are writing this becoz we need confirm password field in our Registratin Request
-    password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     class Meta:
         model = Student
-        fields=['email','first_name','last_name','reg_no','mobile_number','password', 'password2']
-        extra_kwargs={
-            'password':{'write_only':True}
+        fields = ['email', 'first_name', 'last_name', 'reg_no', 'mobile_number', 'password', 'password2','section','year']
+        extra_kwargs = {
+            'password': {'write_only': True}
         }
 
-    # Validating Password and Confirm Password while Registration
     def validate(self, attrs):
         password = attrs.get('password')
         password2 = attrs.get('password2')
         if password != password2:
-            raise serializers.ValidationError("Password and Confirm Password doesn't match")
-        
+            raise serializers.ValidationError("Password and Confirm Password don't match")
         return attrs
-    
-    def create(self, validate_data):
-        return Student.objects.create_user(**validate_data)
+
+    def create(self, validated_data):
+        validated_data.pop('password2')  # Remove password2 from the validated data
+        user = Student.objects.create_user(**validated_data)  # Account is inactive until OTP verification
+        
+        # Generate and store OTP
+        request = self.context['request']
+        otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
+        request.session['otp'] = otp
+        request.session['otp_expiration'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+        request.session['otp_email'] = user.email
+
+        body = f'Your OTP Code code is {otp}\n\nOtp is valid for 10 min only'
+        data = {
+          'subject':'Verify your account',
+          'body':body,
+          'to_email':user.email
+        }
+
+        Util.send_email(data)
+        
+        return user
 
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
