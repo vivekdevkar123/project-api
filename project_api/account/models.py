@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
+from account.choise import *
 
 # Create your models here.
 
 #  Custom User Manager
 class StudentManager(BaseUserManager):
-  def create_user(self, email, first_name,last_name,mobile_number,reg_no, password=None, password2=None):
+  def create_user(self, email, first_name,last_name,mobile_number,reg_no,section,year,semester, password=None, password2=None):
       """
       Creates and saves a User with the given email, name, tc and password.
       """
@@ -18,6 +19,9 @@ class StudentManager(BaseUserManager):
           last_name=last_name,
           mobile_number=mobile_number,
           reg_no=reg_no,
+          section=section,
+          year=year,
+          semester=semester,
       )
 
       user.set_password(password)
@@ -49,7 +53,10 @@ class Student(AbstractBaseUser):
   last_name = models.CharField(max_length=200)
   mobile_number = models.CharField(max_length=13)
   reg_no = models.CharField(max_length=8)
-  is_active = models.BooleanField(default=True)
+  section = models.CharField(max_length=1,choices=SECTION_CHOICES)
+  semester = models.CharField(max_length=1,choices=SEMESTER_CHOICES)
+  year = models.CharField(max_length=1,choices=YEAR_CHOICES)
+  is_active = models.BooleanField(default=False)
   is_mentor = models.BooleanField(default=False)
   is_admin = models.BooleanField(default=False)
   created_at = models.DateTimeField(auto_now_add=True)
