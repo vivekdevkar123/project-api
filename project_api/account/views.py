@@ -40,7 +40,6 @@ class SendOTPView(APIView):
         request.session['otp'] = otp
         request.session['otp_email'] = email
         request.session['otp_expires_at'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(request.session['otp'])
         body = f'Your OTP Code code is {otp}\n\nOtp is valid for 10 min only'
         data = {
           'subject':'Verify your account',
@@ -64,7 +63,6 @@ class VerifyOtpView(APIView):
         session_email = request.session.get('otp_email')
         session_otp_expires_at = request.session.get('otp_expires_at')
 
-        print(otp,session_otp_expires_at)        
         if not all([session_otp, session_email, session_otp_expires_at]):
           return Response({'msg': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,8 +72,6 @@ class VerifyOtpView(APIView):
         if email != session_email:
           return Response({'msg': 'Email mismatch'}, status=status.HTTP_400_BAD_REQUEST)
         
-        
-
         if timezone.now() - timedelta(minutes=10) > session_otp_expires_at:
             return Response({'msg': 'OTP expired'}, status=status.HTTP_400_BAD_REQUEST)
         if str(session_otp) == str(otp):
@@ -96,6 +92,7 @@ class UserLoginView(APIView):
     email = serializer.data.get('email')
     password = serializer.data.get('password')
     user = authenticate(email=email, password=password)
+    print(user)
     if user is not None:
       token = get_tokens_for_user(user)
       return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
