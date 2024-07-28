@@ -82,6 +82,7 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 
 
 # Testing database
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

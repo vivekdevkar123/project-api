@@ -13,7 +13,6 @@ from django.utils import timezone
 from account.models import Student
 from account.utils import Util
 
-
 # Generate Token Manually
 def get_tokens_for_user(user):
   refresh = RefreshToken.for_user(user)
@@ -50,6 +49,7 @@ class SendOTPView(APIView):
         }
         Util.send_email(data)
         return Response({"msg": "OTP sent successfully."}, status=status.HTTP_200_OK)
+
 
 class VerifyOtpView(APIView):
     renderer_classes = [UserRenderer]
