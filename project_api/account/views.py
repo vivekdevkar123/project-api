@@ -62,6 +62,7 @@ class VerifyOtpView(APIView):
         session_otp = request.session.get('otp')
         session_email = request.session.get('otp_email')
         session_otp_expires_at = request.session.get('otp_expires_at')
+
         if not all([session_otp, session_email, session_otp_expires_at]):
           return Response({'msg': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -71,13 +72,13 @@ class VerifyOtpView(APIView):
         if email != session_email:
           return Response({'msg': 'Email mismatch'}, status=status.HTTP_400_BAD_REQUEST)
         
-
         if timezone.now() - timedelta(minutes=10) > session_otp_expires_at:
             return Response({'msg': 'OTP expired'}, status=status.HTTP_400_BAD_REQUEST)
         if str(session_otp) == str(otp):
             try:
                 request.session.flush()  # Clear the session after verification
                 return Response({'msg': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+
             except Student.DoesNotExist:
                 return Response({'msg': 'Unexpected error occurs please try after some time'}, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -92,6 +93,7 @@ class UserLoginView(APIView):
     email = serializer.data.get('email')
     password = serializer.data.get('password')
     user = authenticate(email=email, password=password)
+    print(user)
     if user is not None:
       token = get_tokens_for_user(user)
       return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
