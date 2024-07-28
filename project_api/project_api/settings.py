@@ -82,25 +82,26 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 
 
 # Testing database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 # Production Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATABASE_NAME'),
-        'USER':os.environ.get('DATABASE_USER'),
-        'PASSWORD':os.environ.get('DATABASE_PASSWORD'),
-        'HOST':os.environ.get('DATABASE_HOST'),
-        'PORT':os.environ.get('DATABASE_PORT'),
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('DATABASE_NAME'),
+#         'USER':os.environ.get('DATABASE_USER'),
+#         'PASSWORD':os.environ.get('DATABASE_PASSWORD'),
+#         'HOST':os.environ.get('DATABASE_HOST'),
+#         'PORT':os.environ.get('DATABASE_PORT'),
+#     }
+# }
 
 
 # Password validation
@@ -194,9 +195,27 @@ SIMPLE_JWT = {
 
 PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
 
+
+# Session and CSRF settings for development
+
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Ensure this is set
+SESSION_COOKIE_AGE = 600  # Set session to expire in 600 seconds (10 minutes)
+
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = False  # True for HTTPS, False for development
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = False  # True for HTTPS, False for development
+
+
 CORS_ALLOWED_ORIGINS = [
     # "https://example.com",
     # "https://sub.example.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_CREDENTIALS = True

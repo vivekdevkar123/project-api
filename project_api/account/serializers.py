@@ -27,27 +27,27 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2')  # Remove password2 from the validated data
-        user = Student.objects.create_user(**validated_data)  # Account is inactive until OTP verification
-        
-        # Generate and store OTP
-        request = self.context['request']
-        otp = str(random.randint(100000, 999999))  # Generate a 6-digit OTP
-        request.session['otp'] = otp
-        request.session['otp_expiration'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-        request.session['otp_email'] = user.email
+        return Student.objects.create_user(**validated_data)
 
-        body = f'Your OTP Code code is {otp}\n\nOtp is valid for 10 min only'
-        data = {
-          'subject':'Verify your account',
-          'body':body,
-          'to_email':user.email
-        }
+class SendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    class Meta:
+        model = Student
+        fields = ['email']
 
-        Util.send_email(data)
-        
-        return user
+    def validate(self, attrs):
+        email = attrs.get('email')
+        if Student.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Student with this email already exist.")
+        return attrs
 
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    otp = serializers.CharField(max_length=6)
+
+    def validate(self, data):
+        return data
+    
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
     class Meta:
