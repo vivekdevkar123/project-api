@@ -204,7 +204,7 @@ SESSION_COOKIE_AGE = 600  # Set session to expire in 600 seconds (10 minutes)
 
 
 SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = False  # True for HTTPS, False for development
+# SESSION_COOKIE_SECURE = False  # True for HTTPS, False for development
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = False  # True for HTTPS, False for development
 
