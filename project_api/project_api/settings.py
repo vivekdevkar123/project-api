@@ -167,8 +167,6 @@ EMAIL_USE_TLS = True
 
 # Django project settings.py
 
-...
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -194,19 +192,6 @@ SIMPLE_JWT = {
 }
 
 PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
-
-
-# Session and CSRF settings for development
-
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Ensure this is set
-SESSION_COOKIE_AGE = 600  # Set session to expire in 600 seconds (10 minutes)
-
-
-SESSION_COOKIE_SAMESITE = 'None'
-# SESSION_COOKIE_SECURE = False  # True for HTTPS, False for development
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = False  # True for HTTPS, False for development
 
 
 CORS_ALLOWED_ORIGINS = [

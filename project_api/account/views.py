@@ -77,7 +77,8 @@ class VerifyOtpView(APIView):
         if str(session_otp) == str(otp):
             try:
                 request.session.flush()  # Clear the session after verification
-                return Response({'msg': 'OTP verified successfully, account activated'}, status=status.HTTP_200_OK)
+                return Response({'msg': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+
             except Student.DoesNotExist:
                 return Response({'msg': 'Unexpected error occurs please try after some time'}, status=status.HTTP_404_NOT_FOUND)
         else:
