@@ -151,8 +151,6 @@ EMAIL_USE_TLS = True
 
 # Django project settings.py
 
-...
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -179,9 +177,14 @@ SIMPLE_JWT = {
 
 PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
 
+
 CORS_ALLOWED_ORIGINS = [
     # "https://example.com",
     # "https://sub.example.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_CREDENTIALS = True

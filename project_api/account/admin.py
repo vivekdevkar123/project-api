@@ -8,12 +8,12 @@ class StudentModelAdmin(BaseUserAdmin):
   # The fields to be used in displaying the User model.
   # These override the definitions on the base StudentModelAdmin
   # that reference specific fields on auth.User.
-  list_display = ('reg_no', 'email', 'first_name', 'last_name', 'is_mentor')
+  list_display = ('reg_no', 'email', 'first_name', 'last_name','is_active', 'is_mentor')
   list_filter = ('is_admin','is_mentor',)
   fieldsets = (
       ('User Credentials', {'fields': ('email', 'password')}),
-      ('Personal info', {'fields': ('first_name', 'last_name')}),
-      ('Permissions', {'fields': ('is_admin',)}),
+      ('Personal info', {'fields': ('first_name','middle_name', 'last_name','mobile_number','section','year','semester',)}),
+      ('Permissions', {'fields': ('is_admin','is_active', 'is_mentor',)}),
   )
   # add_fieldsets is not a standard ModelAdmin attribute. StudentModelAdmin
   # overrides get_fieldsets to use this attribute when creating a user.

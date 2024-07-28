@@ -4,31 +4,50 @@ from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeErr
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from account.utils import Util
+import random
+from django.conf import settings
+from django.utils import timezone
 
+    
 class UserRegistrationSerializer(serializers.ModelSerializer):
-
-    # We are writing this becoz we need confirm password field in our Registratin Request
-    password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
 
     class Meta:
         model = Student
-        fields=['email','first_name','last_name','reg_no','mobile_number','password', 'password2']
-        extra_kwargs={
-            'password':{'write_only':True}
+        fields = ['email', 'first_name', 'last_name', 'reg_no', 'mobile_number', 'password', 'password2','section','year','semester']
+        extra_kwargs = {
+            'password': {'write_only': True}
         }
 
-    # Validating Password and Confirm Password while Registration
     def validate(self, attrs):
         password = attrs.get('password')
         password2 = attrs.get('password2')
         if password != password2:
-            raise serializers.ValidationError("Password and Confirm Password doesn't match")
-        
+            raise serializers.ValidationError("Password and Confirm Password don't match")
         return attrs
-    
-    def create(self, validate_data):
-        return Student.objects.create_user(**validate_data)
 
+    def create(self, validated_data):
+        return Student.objects.create_user(**validated_data)
+
+class SendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    class Meta:
+        model = Student
+        fields = ['email']
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        if Student.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Student with this email already exist.")
+        return attrs
+
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255)
+    otp = serializers.CharField(max_length=6)
+
+    def validate(self, data):
+        return data
+    
 class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255)
     class Meta:
