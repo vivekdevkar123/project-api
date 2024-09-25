@@ -54,11 +54,10 @@ class UserLoginSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['email', 'password']
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = Student
-    fields = ['reg_no', 'email', 'first_name','last_name']
+    fields = ['reg_no', 'email', 'first_name','middle_name','last_name','is_mentor','year','semester','section','mobile_number']
 
 
 class UserChangePasswordSerializer(serializers.Serializer):
