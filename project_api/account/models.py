@@ -56,7 +56,7 @@ class Student(AbstractBaseUser):
   section = models.CharField(max_length=1,choices=SECTION_CHOICES)
   semester = models.CharField(max_length=1,choices=SEMESTER_CHOICES)
   year = models.CharField(max_length=1,choices=YEAR_CHOICES)
-  is_active = models.BooleanField(default=False)
+  is_active = models.BooleanField(default=True)
   is_mentor = models.BooleanField(default=False)
   is_admin = models.BooleanField(default=False)
   created_at = models.DateTimeField(auto_now_add=True)
