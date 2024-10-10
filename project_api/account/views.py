@@ -1,4 +1,5 @@
 import random
+from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from account.models import Student
 from account.utils import Util
+import requests
 
 # Generate Token Manually
 def get_tokens_for_user(user):
@@ -132,3 +134,116 @@ class UserPasswordResetView(APIView):
     serializer = UserPasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
     serializer.is_valid(raise_exception=True)
     return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
+  
+class LinkedInUserIdView(APIView):
+    def get(self, request):
+        try:
+            # Extract the Authorization header
+            authorization_header = request.headers.get('Authorization')
+
+            if not authorization_header or not authorization_header.startswith('Bearer '):
+                return JsonResponse({'error': 'Authorization header missing or invalid'}, status=401)
+            
+            # Extract access token from the header
+            access_token = authorization_header.split(' ')[1]
+            print(f'Access Token: {access_token}')
+
+            # LinkedIn API URL for fetching user profile
+            url = 'https://api.linkedin.com/v2/me'
+
+            # Set up headers
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+
+            # Send request to LinkedIn API
+            response = requests.get(url, headers=headers, timeout=5)  # 5 seconds timeout
+
+            # Handle LinkedIn API response
+            if response.status_code == 200:
+                data = response.json()
+                # Return LinkedIn user ID or any other required information
+                return JsonResponse({'linkedInUserId': data.get('id')}, status=200)
+            else:
+                error_data = response.json()
+                print(f'Error fetching user data: {error_data}')  # Log the error details
+                return JsonResponse({'error': error_data.get('message', 'Unknown error')}, status=response.status_code)
+
+        except requests.exceptions.Timeout:
+            return JsonResponse({'error': 'Request timed out'}, status=504)
+        except Exception as e:
+            print(f'Error fetching LinkedIn user data: {e}')  # Log the error for debugging
+            return JsonResponse({'error': 'Failed to fetch user data from LinkedIn'}, status=500)
+
+class LinkedInPostView(APIView):
+    def post(self, request):
+        try:
+            # Extract access token and post content from request body
+            data = request.data
+            access_token = data.get('accessToken')
+            content = data.get('content')
+
+            # Get LinkedIn user ID
+            user_id_response = self.get_user_id(access_token)
+            if user_id_response.status_code != 200:
+                return user_id_response  # Forward the error response
+            
+            linked_in_user_id = user_id_response.json().get('linkedInUserId')
+            if not linked_in_user_id:
+                return JsonResponse({'error': 'User ID not found'}, status=400)
+
+            # LinkedIn API endpoint for UGC posts
+            url = 'https://api.linkedin.com/v2/ugcPosts'
+
+            # Post body data
+            body = {
+                "author": f"urn:li:person:{linked_in_user_id}",  # Using the retrieved user ID
+                "lifecycleState": "PUBLISHED",
+                "specificContent": {
+                    "com.linkedin.ugc.ShareContent": {
+                        "shareCommentary": {
+                            "text": content,  # Text for your LinkedIn post
+                        },
+                        "shareMediaCategory": "NONE"
+                    }
+                },
+                "visibility": {
+                    "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+                }
+            }
+
+            # Send POST request to LinkedIn API
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+
+            response = requests.post(url, headers=headers, json=body)
+
+            # Check for successful response
+            if response.status_code in [200, 201]:
+                return JsonResponse({
+                    'message': 'Post created successfully!',
+                    'data': response.json()
+                }, status=200)
+            else:
+                return JsonResponse({
+                    'error': 'Failed to create post',
+                    'details': response.json()
+                }, status=response.status_code)
+
+        except Exception as e:
+            return JsonResponse({
+                'error': 'An error occurred',
+                'details': str(e)
+            }, status=500)
+
+    def get_user_id(self, access_token):
+        """Helper method to get LinkedIn user ID."""
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json'
+        }
+        url = 'https://api.linkedin.com/v2/me'
+        return requests.get(url, headers=headers)
