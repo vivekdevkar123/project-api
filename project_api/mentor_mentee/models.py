@@ -28,15 +28,15 @@ class Participant(models.Model):
 
     # Hackathon
     hackathon_participation = models.CharField(max_length=50, choices=LEVEL_CHOICES)
-    number_of_wins = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    number_of_participations = models.IntegerField(default=0, validators=[MinValueValidator(0)])
-    hackathon_role = models.CharField(max_length=20, choices=HACKATHON_ROLE_CHOICES)
+    number_of_wins = models.IntegerField(default=0, validators=[MinValueValidator(0)],blank=True, null=True)
+    number_of_participations = models.IntegerField(default=0, validators=[MinValueValidator(0)],blank=True, null=True)
+    hackathon_role = models.CharField(default=None,max_length=20, choices=HACKATHON_ROLE_CHOICES,blank=True, null=True)
     proof_of_hackathon_participation = models.BinaryField(blank=True, null=True)  # Store the file as a BLOB
 
     # Coding Competitions
     coding_competitions_participate = models.CharField(max_length=3, choices=YES_NO_CHOICES)
-    level_of_competition = models.CharField(max_length=15, choices=LEVEL_CHOICES)
-    number_of_coding_competitions = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    level_of_competition = models.CharField(default=None,max_length=15, choices=LEVEL_CHOICES,blank=True, null=True)
+    number_of_coding_competitions = models.IntegerField(default=0, validators=[MinValueValidator(0)],blank=True, null=True)
     proof_of_coding_competitions = models.BinaryField(blank=True, null=True)  # Store the file as a BLOB
 
     # Academic Performance
@@ -46,16 +46,16 @@ class Participant(models.Model):
 
     # Internship
     internship_experience = models.CharField(max_length=3, choices=YES_NO_CHOICES)
-    number_of_internships = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    number_of_internships = models.IntegerField(default=0, validators=[MinValueValidator(0)],blank=True, null=True)
     internship_description = models.TextField(blank=True, null=True)
     proof_of_internships = models.BinaryField(blank=True, null=True)  # Store the file as a BLOB
 
     # Seminars & Workshops
-    seminars_or_workshops_attended = models.CharField(max_length=3, choices=YES_NO_CHOICES)
+    seminars_or_workshops_attended = models.CharField(default=None,max_length=3, choices=YES_NO_CHOICES,blank=True, null=True)
     describe_seminars_or_workshops = models.TextField(blank=True, null=True)
 
     # Extracurricular Activities
-    extracurricular_activities = models.CharField(max_length=3, choices=YES_NO_CHOICES)
+    extracurricular_activities = models.CharField(max_length=3, choices=YES_NO_CHOICES,blank=True, null=True)
     describe_extracurricular_activities = models.TextField(blank=True, null=True)
     proof_of_extracurricular_activities = models.BinaryField(blank=True, null=True)  # Store the file as a BLOB
 
