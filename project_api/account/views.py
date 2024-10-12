@@ -12,6 +12,101 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from account.models import Student
 from account.utils import Util
+#Google Meet
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from django.shortcuts import redirect
+from django.http import JsonResponse
+import os
+from django.conf import settings
+
+# Define the scopes required for Google Meet (Calendar API)
+SCOPES = ['https://www.googleapis.com/auth/calendar']
+
+def google_meet_auth(request):
+    # Initialize the OAuth 2.0 flow
+    flow = InstalledAppFlow.from_client_secrets_file(
+        os.path.join(settings.BASE_DIR, 'project_api/credentials/client_id.json'), SCOPES)
+    flow.redirect_uri = 'http://127.0.0.1:8000/google-meet/callback'
+
+
+    # Generate the authorization URL
+    authorization_url, state = flow.authorization_url(
+        access_type='offline', include_granted_scopes='true')
+    request.session['state'] = state
+    return redirect(authorization_url)
+
+def google_meet_callback(request):
+    # Get the state parameter saved in session
+    state = request.session.get('state')
+
+    # Complete the OAuth 2.0 flow
+    flow = InstalledAppFlow.from_client_secrets_file(
+        os.path.join(settings.BASE_DIR, 'project_api/credentials/client_id.json'), SCOPES, state=state)
+    flow.redirect_uri = 'http://127.0.0.1:8000/google-meet/callback'
+
+    # Fetch the token after the user approves the OAuth consent screen
+    flow.fetch_token(authorization_response=request.build_absolute_uri())
+
+    # Get the user's credentials
+    credentials = flow.credentials
+    request.session['credentials'] = credentials_to_dict(credentials)  # Save the credentials in session
+
+    return JsonResponse({"message": "Google Meet authenticated successfully."})
+
+def create_google_meet(request):
+    # Check if the user is authenticated and has credentials
+    if 'credentials' not in request.session:
+        return JsonResponse({"error": "User not authenticated. Please authenticate first."}, status=403)
+
+    credentials = Credentials.from_authorized_user_info(request.session['credentials'], SCOPES)
+
+    # Build the Google Calendar service
+    service = build('calendar', 'v3', credentials=credentials)
+
+    # Create a new Google Meet event (insert event in Google Calendar)
+    event = {
+        'summary': 'Mentor-Mentee Virtual Meeting',
+        'start': {
+            'dateTime': '2024-10-15T09:00:00-07:00',  # Set your start time
+            'timeZone': 'America/Los_Angeles',
+        },
+        'end': {
+            'dateTime': '2024-10-15T10:00:00-07:00',  # Set your end time
+            'timeZone': 'America/Los_Angeles',
+        },
+        'conferenceData': {
+            'createRequest': {
+                'requestId': 'random-id',  # Random string for unique request ID
+                'conferenceSolutionKey': {
+                    'type': 'hangoutsMeet'  # Specifies Google Meet
+                }
+            }
+        }
+    }
+
+    try:
+        # Insert the event into the user's primary calendar
+        event = service.events().insert(calendarId='primary', body=event, conferenceDataVersion=1).execute()
+        return JsonResponse({
+            'meet_link': event['hangoutLink'],
+            'event_id': event['id']
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def credentials_to_dict(credentials):
+    """Converts the credentials to a dictionary for JSON serialization."""
+    return {
+        'token': credentials.token,
+        'refresh_token': credentials.refresh_token,
+        'token_uri': credentials.token_uri,
+        'client_id': credentials.client_id,
+        'client_secret': credentials.client_secret,
+        'scopes': credentials.scopes
+    }
+#Google meet code end
 
 # Generate Token Manually
 def get_tokens_for_user(user):
