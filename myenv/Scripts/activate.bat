@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\PARAS PETHE\OneDrive - MSFT\Desktop\Mini Project\project-api\myenv
+set VIRTUAL_ENV=D:\project-api\myenv
 
 if not defined PROMPT set PROMPT=$P$G
 

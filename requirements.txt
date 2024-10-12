@@ -7,4 +7,3 @@ PyJWT==2.9.0
 python-dotenv==1.0.1
 sqlparse==0.5.1
 tzdata==2024.2
-python-dotenv==1.0.1
