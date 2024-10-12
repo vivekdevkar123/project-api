@@ -39,6 +39,11 @@ class SendOTPView(APIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         otp = random.randint(100000, 999999)
+
+        print(f'Setting OTP {otp} for email {email} in session')
+        request.session['Mak'] = 'Tighare'
+        
+
         request.session['otp'] = otp
         request.session['otp_email'] = email
         request.session['otp_expires_at'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -55,6 +60,8 @@ class SendOTPView(APIView):
 class VerifyOtpView(APIView):
     renderer_classes = [UserRenderer]
     def post(self, request):
+        print("Incoming request data:", request.data)
+        print("Session data:", request.session.items())
         serializer = VerifyOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
@@ -64,6 +71,9 @@ class VerifyOtpView(APIView):
         session_otp = request.session.get('otp')
         session_email = request.session.get('otp_email')
         session_otp_expires_at = request.session.get('otp_expires_at')
+        print(f"Test Key: {request.session.get('Mak')}")
+
+        print(f'Session OTP: {session_otp}, Session Email: {session_email}, Session OTP Expires At: {session_otp_expires_at}')
         
         if not all([session_otp, session_email, session_otp_expires_at]):
           return Response({'msg': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)
