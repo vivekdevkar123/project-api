@@ -71,9 +71,7 @@ class VerifyOtpView(APIView):
         session_otp = request.session.get('otp')
         session_email = request.session.get('otp_email')
         session_otp_expires_at = request.session.get('otp_expires_at')
-        print(f"Test Key: {request.session.get('Mak')}")
-
-        print(f'Session OTP: {session_otp}, Session Email: {session_email}, Session OTP Expires At: {session_otp_expires_at}')
+        print(session_email,session_otp,session_otp_expires_at,otp)
         
         if not all([session_otp, session_email, session_otp_expires_at]):
           return Response({'msg': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)

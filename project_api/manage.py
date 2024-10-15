@@ -5,6 +5,7 @@ import sys
 from dotenv import load_dotenv
 
 def main():
+    dotenv.load_dotenv()
     """Run administrative tasks."""
     load_dotenv() 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project_api.settings')
