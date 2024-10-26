@@ -1,4 +1,7 @@
+import os
 import random
+
+import requests
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -40,9 +43,6 @@ class SendOTPView(APIView):
         request.session['otp'] = otp
         request.session['otp_email'] = email
         request.session['otp_expires_at'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-
-        session_otp = request.session.get('otp')
-        session_email = request.session.get('otp_email')
 
         body = f'Your OTP Code code is {otp}\n\nOtp is valid for 10 min only'
         data = {
@@ -136,3 +136,47 @@ class UserPasswordResetView(APIView):
     serializer = UserPasswordResetSerializer(data=request.data, context={'uid':uid, 'token':token})
     serializer.is_valid(raise_exception=True)
     return Response({'msg':'Password Reset Successfully'}, status=status.HTTP_200_OK)
+  
+
+class LinkedInAuthView(APIView):
+
+    def post(self, request):
+        
+        client_id = os.environ.get('LINKEDIN_CLIENT_ID')
+        client_secret = os.environ.get('LINKEDIN_CLIENT_SECRET')
+        redirect_uri = os.environ.get('LINKEDIN_REDIRECT_URI')
+        token_url = 'https://www.linkedin.com/oauth/v2/accessToken'
+
+        # Validate the incoming data
+        authorization_code = request.data.get('authorization_code')
+        state_code = request.data.get('state')
+        if not authorization_code:
+            return Response({'error': 'Authorization code is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Exchange authorization code for access token
+        token_params = {
+            'grant_type': 'authorization_code',
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'client_id': client_id,
+            'client_secret': client_secret,
+        }
+
+        response = requests.post(token_url, data=token_params)
+
+        if response.status_code == 200:
+          token_data = response.json()
+          access_token = token_data['access_token']
+          print(access_token)
+          # try:
+          #     user = request.user
+          #     user.access_token = access_token
+          #     user.save()
+          #     return Response({'msg':'Linkedin authentication Successful'}, status=status.HTTP_200_OK)
+          # except:
+          #     return Response({'error': 'please logged in before connecting to linkedin', 'details': response.json()},
+          #                   status=status.HTTP_400_BAD_REQUEST)
+          return Response({'msg':'Linkedin authentication Successful'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Error obtaining access token', 'details': response.json()},
+                            status=status.HTTP_400_BAD_REQUEST)
