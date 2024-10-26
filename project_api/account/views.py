@@ -40,6 +40,10 @@ class SendOTPView(APIView):
         request.session['otp'] = otp
         request.session['otp_email'] = email
         request.session['otp_expires_at'] = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        session_otp = request.session.get('otp')
+        session_email = request.session.get('otp_email')
+
         body = f'Your OTP Code code is {otp}\n\nOtp is valid for 10 min only'
         data = {
           'subject':'Verify your account',
@@ -62,7 +66,6 @@ class VerifyOtpView(APIView):
         session_otp = request.session.get('otp')
         session_email = request.session.get('otp_email')
         session_otp_expires_at = request.session.get('otp_expires_at')
-        print(session_email,session_otp,session_otp_expires_at,otp)
         
         if not all([session_otp, session_email, session_otp_expires_at]):
           return Response({'msg': 'OTP not found or session expired'}, status=status.HTTP_400_BAD_REQUEST)

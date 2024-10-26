@@ -62,6 +62,8 @@ class Student(AbstractBaseUser):
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
 
+  linkedin_access_token = models.CharField(max_length=1000, blank=True, null=True)
+
   objects = StudentManager()
 
   USERNAME_FIELD = 'email'

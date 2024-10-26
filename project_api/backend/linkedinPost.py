@@ -1,25 +1,8 @@
+from flask import Flask, request, jsonify
 import requests
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Participant
-from .serializers import ParticipantSerializer
+import json
 
-@api_view(['POST'])
-def create_participant(request):
-    if request.method == 'POST':
-        serializer = ParticipantSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'msg': 'Details saved successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-def list_participants(request):
-    if request.method == 'GET':
-        participants = Participant.objects.all()
-        serializer = ParticipantSerializer(participants, many=True)
-        return Response(serializer.data)
+app = Flask(__name__)
 
 # Function to get LinkedIn user profile
 def get_linkedin_user_id(access_token):
@@ -51,21 +34,21 @@ def get_linkedin_user_id(access_token):
         return None, str(e)
 
 # Function to create a post on LinkedIn
-@api_view(['POST'])
-def linkedin_post(request):
+@app.route('/api/linkedin/post', methods=['POST'])
+def linkedin_post():
     try:
         # Extract access token and post content from request body
-        data = request.data
+        data = request.get_json()
         access_token = data.get('accessToken')
         content = data.get('content')
 
         # Fetch user ID dynamically
         user_id, error = get_linkedin_user_id(access_token)
         if error:
-            return Response({
+            return jsonify({
                 'error': 'Failed to fetch LinkedIn user ID',
                 'details': error
-            }, status=status.HTTP_400_BAD_REQUEST)
+            }), 400
 
         # LinkedIn API endpoint for UGC posts
         url = 'https://api.linkedin.com/v2/ugcPosts'
@@ -96,19 +79,23 @@ def linkedin_post(request):
         response = requests.post(url, headers=headers, data=json.dumps(body))
 
         # Check for successful response
-        if response.status_code in [200, 201]:
-            return Response({
+        if response.status_code == 201 or response.status_code == 200:
+            return jsonify({
                 'message': 'Post created successfully!',
                 'data': response.json()
-            }, status=status.HTTP_200_OK)
+            }), 200
         else:
-            return Response({
+            return jsonify({
                 'error': 'Failed to create post',
                 'details': response.json()
-            }, status=response.status_code)
+            }), response.status_code
 
     except Exception as e:
-        return Response({
+        return jsonify({
             'error': 'An error occurred',
             'details': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        }), 500
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
