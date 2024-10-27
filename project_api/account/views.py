@@ -1,6 +1,5 @@
 import os
 import random
-
 import requests
 from rest_framework.response import Response
 from rest_framework import status
@@ -150,6 +149,7 @@ class LinkedInAuthView(APIView):
         # Validate the incoming data
         authorization_code = request.data.get('authorization_code')
         state_code = request.data.get('state')
+        user_email = request.data.get('email')
         if not authorization_code:
             return Response({'error': 'Authorization code is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -167,16 +167,14 @@ class LinkedInAuthView(APIView):
         if response.status_code == 200:
           token_data = response.json()
           access_token = token_data['access_token']
-          print(access_token)
-          # try:
-          #     user = request.user
-          #     user.access_token = access_token
-          #     user.save()
-          #     return Response({'msg':'Linkedin authentication Successful'}, status=status.HTTP_200_OK)
-          # except:
-          #     return Response({'error': 'please logged in before connecting to linkedin', 'details': response.json()},
-          #                   status=status.HTTP_400_BAD_REQUEST)
-          return Response({'msg':'Linkedin authentication Successful'}, status=status.HTTP_200_OK)
+          try:
+              user = Student.objects.get(email=user_email)
+              user.linkedin_access_token = access_token
+              user.save()
+              return Response({'msg':'Linkedin authentication Successful'}, status=status.HTTP_200_OK)
+          except:
+              return Response({'error': 'please logged in before connecting to linkedin', 'details': response.json()},
+                            status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'error': 'Error obtaining access token', 'details': response.json()},
                             status=status.HTTP_400_BAD_REQUEST)

@@ -57,7 +57,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = Student
-    fields = ['reg_no', 'email', 'first_name','middle_name','last_name','is_mentor','year','semester','section','mobile_number']
+    fields = ['reg_no', 'email', 'first_name','middle_name','last_name','is_mentor','year','semester','section','mobile_number','linkedin_access_token']
 
 
 class UserChangePasswordSerializer(serializers.Serializer):
