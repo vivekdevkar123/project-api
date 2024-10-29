@@ -131,6 +131,7 @@ env.bak/
 venv.bak/
 myenv/
 
+
 # Payloads
 .payloads
 .Payloads
@@ -170,4 +171,4 @@ cython_debug/
 
 
 # Google meet credential 
-project_api/client_secret.json
+client_secret.json
